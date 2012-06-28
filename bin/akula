@@ -74,5 +74,5 @@ then
 fi
 
 # Execute the subcommand.
-shift
+[ $# -ne 0 ] && shift
 exec "$subcmd" "$@"
