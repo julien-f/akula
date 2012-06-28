@@ -26,8 +26,8 @@ Akula permits you to do this without much work.
 
 # Usage
 
-1. Put all your subcommands in a given directory (`/usr/local/lib/COMMAND` or
-   `/usr/lib/COMMAND` by default).
+1. Put all your subcommands in a given directory (`/usr/local/lib/COMMAND/commands` or
+   `/usr/lib/COMMAND/commands` by default).
 2. Then make a symbolic link to `akula` with the name of your command.
 
 # Environment variable

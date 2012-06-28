@@ -64,7 +64,7 @@ ak_find_command()
 : \
 	${AKULA_COMMAND:=${0##*/}} \
 	${AKULA_SUBCOMMAND:=${1:---help}} \
-	${AKULA_PATH:=/usr/local/lib/$AKULA_COMMAND:/usr/lib/$AKULA_COMMAND}
+	${AKULA_PATH:=/usr/local/lib/$AKULA_COMMAND/commands:/usr/lib/$AKULA_COMMAND/commands}
 
 # Looks for the subcommand.
 if ! subcmd=$(ak_find_command "$AKULA_SUBCOMMAND" "$AKULA_PATH")
