@@ -1,0 +1,78 @@
+#!/bin/sh
+
+##
+# Akula: Proud command namespacer
+#
+# @authors:
+#   Julien Fontanet <julien.fontanet@vates.fr>
+##
+
+##
+# This file is part of the Akula.
+#
+# The Portable Shell Library is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# The Akula is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# the Akula.  If not, see <http://www.gnu.org/licenses/>.
+##
+
+################################################################################
+
+# Fatal error if an untested command failed.
+set -e
+
+# Fatal error if usage of an undefined variable.
+set -u
+
+################################################################################
+
+# ak_find_command COMMAND PATH
+ak_find_command()
+{
+	local tmp dir
+
+	tmp=$2
+	while [ "$tmp" ]
+	do
+		dir=${tmp%%:*}
+		tmp=${tmp#*:}
+
+		# Last item of the path.
+		[ "$tmp" = "$dir" ] && tmp=
+
+		if [ -x "$dir/$1" ]
+		then
+			printf '%s\n' "$dir/$1"
+			return
+		fi
+	done
+
+	return 1
+}
+
+
+################################################################################
+
+# Makes sure variable are correctly initialized.
+: \
+	${AKULA_COMMAND:=${0##*/}} \
+	${AKULA_SUBCOMMAND:=${1:---help}} \
+	${AKULA_PATH:=/usr/local/lib/$AKULA_COMMAND:/usr/lib/$AKULA_COMMAND}
+
+# Looks for the subcommand.
+if ! subcmd=$(ak_find_command "$AKULA_SUBCOMMAND" "$AKULA_PATH")
+then
+	printf '%s\n' "$AKULA_COMMAND: Command not found “$AKULA_SUBCOMMAND”" >&2
+	return 1
+fi
+
+# Execute the subcommand.
+shift
+exec "$subcmd" "$@"
