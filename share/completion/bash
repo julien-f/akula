@@ -1,0 +1,16 @@
+# Todo: Avoid Akula users the need to define the completion for their command.
+#
+# 1. Sets _akula_default as default for all commands without completion.
+# 2. Checks if it this command use Akula.
+# 3. If it does, use _akula.
+#    If not, fallback on the original default completion.
+
+_akula()
+{
+	local cur prev words cword
+
+	_init_completion || return
+
+	COMPREPLY=( $(compgen -W "--help --commands $("${words[0]}" --commands)" -- "$cur") )
+}
+complete -F _akula akula
