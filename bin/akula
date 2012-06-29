@@ -93,11 +93,11 @@ ak_list_commands()
 ak_usage()
 {
 	cat <<EOF
-Usage: $0 --help
-       $0 --commands
-       $0 SUBCOMMAND [ARGUMENT...]
+Usage: $1 --help
+       $1 --commands
+       $1 SUBCOMMAND [ARGUMENT...]
 
---help|-h     Prints this help message.
+--help        Prints this help message.
 
 --commands    Prints the list of available commands.
 
@@ -117,11 +117,11 @@ EOF
 
 case "$AKULA_SUBCOMMAND" in
 	'')
-		ak_wln "$AKULA_COMMAND: Missing subcommand" >&2
+		ak_wln "Missing subcommand. Try $AKULA_COMMAND --help" >&2
 		return 1
 		;;
 	-h|--help)
-		ak_usage
+		ak_usage "$AKULA_COMMAND"
 		return 0
 		;;
 	--commands)
@@ -129,7 +129,7 @@ case "$AKULA_SUBCOMMAND" in
 		return 0
 		;;
 	-*)
-		ak_wln "$AKULA_COMMAND: Invalid option “$AKULA_SUBCOMMAND”" >&2
+		ak_wln "Invalid option. Try $AKULA_COMMAND --help" >&2
 		return 1
 esac
 
