@@ -82,7 +82,6 @@ ak_list_commands()
 			if [ -x "$file" ]
 			then
 				ak_wln "${file##*/}"
-				return
 			fi
 		done
 	done
