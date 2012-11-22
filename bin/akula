@@ -33,18 +33,18 @@ set -u
 
 ################################################################################
 
-# ak_wln LINE…
-ak_wln()
+# wln LINE…
+wln()
 {
 	printf '%s\n' "$@"
 }
 
-# ak_find_command COMMAND PATH
-ak_find_command()
+# find_command COMMAND
+find_command()
 {
 	local tmp dir
 
-	tmp=$2
+	tmp=$EXEC_PATH
 	while [ "$tmp" ]
 	do
 		dir=${tmp%%:*}
@@ -55,7 +55,7 @@ ak_find_command()
 
 		if [ -x "$dir/$1" ]
 		then
-			ak_wln "$dir/$1"
+			wln "$dir/$1"
 			return
 		fi
 	done
@@ -63,12 +63,12 @@ ak_find_command()
 	return 1
 }
 
-# ak_list_commands PATH
-ak_list_commands()
+# list_commands
+list_commands()
 {
 	local tmp dir file
 
-	tmp=$1
+	tmp=$EXEC_PATH
 	while [ "$tmp" ]
 	do
 		dir=${tmp%%:*}
@@ -81,7 +81,7 @@ ak_list_commands()
 		do
 			if [ -x "$file" ]
 			then
-				ak_wln "${file##*/}"
+				wln "${file##*/}"
 			fi
 		done
 	done
@@ -89,59 +89,80 @@ ak_list_commands()
 	return 1
 }
 
-# ak_usage COMMAND
-ak_usage()
+# usage
+usage()
 {
 	cat <<EOF
-Usage: $1 --help
-       $1 --commands
-       $1 SUBCOMMAND [ARGUMENT...]
-
---help        Prints this help message.
+Usage: $AKULA_COMMAND [--exec-path=[<path>]] [--commands]
+       $AKULA_COMMAND <command> [<args>]
 
 --commands    Prints the list of available commands.
-
-SUBCOMMAND    Runs the given subcommands with its arguments.
+<command>     Runs the given command with its arguments.
 EOF
 }
 
 ################################################################################
 
-# Makes sure variable are correctly initialized.
-: \
-	${AKULA_COMMAND:=${0##*/}} \
-	${AKULA_SUBCOMMAND:=${1:-}} \
-	${AKULA_PATH:=/usr/local/lib/$AKULA_COMMAND/commands:/usr/lib/$AKULA_COMMAND/commands}
+AKULA_COMMAND=${0##*/}
+export AKULA_COMMAND
+
+EXEC_PATH=/usr/local/lib/$AKULA_COMMAND/commands:/usr/lib/$AKULA_COMMAND/commands
 
 ################################################################################
 
-case "$AKULA_SUBCOMMAND" in
-	'')
-		ak_wln "Missing subcommand. Try $AKULA_COMMAND --help" >&2
-		return 1
-		;;
-	-h|--help)
-		ak_usage "$AKULA_COMMAND"
-		return 0
-		;;
-	--commands)
-		ak_list_commands "$AKULA_PATH"
-		return 0
-		;;
-	-*)
-		ak_wln "Invalid option. Try $AKULA_COMMAND --help" >&2
-		return 1
-esac
+while [ $# -ne 0 ]
+do
+	case "$1" in
+		'')
+			wln "Missing subcommand. Try $AKULA_COMMAND --help" >&2
+			return 1
+			;;
+		--help)
+			usage
+			return 0
+			;;
+		--commands)
+			list_commands
+			return 0
+			;;
+		--exec-path)
+			wln "$EXEC_PATH"
+			return
+			;;
+		--exec-path'='*)
+			EXEC_PATH=${1#*=}
+			;;
+		'-*')
+			{
+				wln "Unknown option: $1"
+				usage
+			} >&2
+			return 1
+			;;
+		*)
+			AKULA_SUBCOMMAND=$1
+			shift
+			export AKULA_SUBCOMMAND
+			break
+	esac
+
+	shift
+done
+
+if ! [ "${AKULA_SUBCOMMAND:-}" ]
+then
+	usage
+	return
+fi
 
 ################################################################################
 
 # Looks for the subcommand.
-if ! subcmd=$(ak_find_command "$AKULA_SUBCOMMAND" "$AKULA_PATH")
+if ! subcmd=$(find_command "$AKULA_SUBCOMMAND")
 then
-	ak_wln "$AKULA_COMMAND: Command not found “$AKULA_SUBCOMMAND”" >&2
+	wln "$AKULA_COMMAND: Command not found “$AKULA_SUBCOMMAND”" >&2
 	return 1
 fi
 
 # Execute the subcommand.
-[ $# -ne 0 ] && shift
 exec "$subcmd" "$@"
