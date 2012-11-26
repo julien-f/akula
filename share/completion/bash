@@ -7,10 +7,45 @@
 
 _akula()
 {
-	local cur prev words cword
+	local cur prev words cword i
 
-	_init_completion || return
+	_init_completion -n '=' || return
 
-	COMPREPLY=( $(compgen -W "--help --commands $("${words[0]}" --commands)" -- "$cur") )
+	# Finds where is the command (first argument which does not start with
+	# a “-”).
+	for ((i = 1; i < ${#words[@]}; ++i))
+	do
+		case "${words[i]}" in
+			--commands | --exec-path)
+				# No completion after this entries.
+				if ((i + 1 < ${#words[@]}))
+				then
+					return
+				fi
+				;;
+			-*)
+				;;
+			*)
+				break
+		esac
+	done
+
+	if [[ $cword -lt $i ]]
+	then
+		case "$cur" in
+			'--exec-path='*)
+				cur=${cur#*=}
+				_filedir -d
+				return
+		esac
+
+		COMPREPLY=( $(compgen -W "--exec-path --help $(_parse_help "$1")" -- "$cur") )
+		return
+	elif [[ $cword -eq $i ]]
+	then
+		COMPREPLY=( $(compgen -W "$("${words[@]:0:$i}" --commands)" -- "$cur") )
+	else
+		_filedir
+	fi
 }
 complete -F _akula akula

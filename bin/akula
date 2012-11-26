@@ -25,11 +25,9 @@
 
 ################################################################################
 
-# Fatal error if an untested command failed.
-set -e
-
-# Fatal error if usage of an undefined variable.
-set -u
+# Fatal error if an untested command failed or if an
+# undefined variable is used.
+set -e -u
 
 ################################################################################
 
@@ -103,7 +101,13 @@ EOF
 
 ################################################################################
 
-AKULA_COMMAND=${0##*/}
+if [ "${_AKULA_COMMAND:-}" ]
+then
+	AKULA_COMMAND=$_AKULA_COMMAND
+	unset _AKULA_COMMAND
+else
+	AKULA_COMMAND=${0##*/}
+fi
 export AKULA_COMMAND
 
 EXEC_PATH=/usr/local/lib/$AKULA_COMMAND/commands:/usr/lib/$AKULA_COMMAND/commands
